@@ -1,0 +1,37 @@
+{
+  "name": "html-script-hook",
+  "version": "1.0.0",
+  "description": "For each local <script> tag, calls a callback and replaces the script code with the result",
+  "main": "index.js",
+  "directories": {
+    "test": "test",
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/apowers313/html-script-hook.git"
+  },
+  "keywords": [
+    "HTML",
+    "JavaScript",
+    "Code",
+    "Coverage",
+    "Analysis",
+    "Documentation"
+  ],
+  "author": "Adam Powers <apowers@ato.ms>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/apowers313/html-script-hook/issues"
+  },
+  "homepage": "https://github.com/apowers313/html-script-hook#readme",
+  "dependencies": {
+    "pegjs": "^0.9.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.3.1"
+  }
+}

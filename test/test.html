@@ -1,0 +1,62 @@
+<script>
+/**
+ * {{element_name}}
+ * {{element_desc}}
+ *
+ * Documents for Polymer can be found here:
+ * * [Polymer Base API](http://polymer.github.io/polymer/)
+ * * [Polymer Developer Guide](https://www.polymer-project.org/1.0/docs/devguide/feature-overview.html)
+ *
+ * For information on this documentation syntax, see:
+ * [the YUIDoc syntax](http://yui.github.io/yuidoc/syntax/)
+ *
+ * @class {{element_name}}
+ */
+</script>
+<link rel="import" href="../polymer/polymer.html">
+<script src="./test.js"></script>
+
+<dom-module id="{{element_name}}">
+    <template>
+        <style>
+        </style>
+        Hello world!
+        <br> The open-element HTML goes here...
+        <br> Example data binding: <span>{{testProperty}}</span>
+    </template>
+    <script>
+    Polymer({
+        is: '{{element_name}}',
+
+        /**
+         * Just a testProperty to show how properties work in Polymer.
+         * It is probably pretty safe to delete this, or comment it out
+         * and keep it around as a reference.
+         * 
+         * @property testProperty
+         * @type String
+         * @default "this is the initial value"
+         */
+        properties: {
+            testProperty: {
+                type: String,
+                value: getInitialValue()
+                // notify: true,
+                // reflectToAttribute: true,
+                // observer: "observerFunction(someProperty)",
+                // computed: "computedFunction(someProperty)",
+                // readOnly: true,
+            },
+            // someProperty ...
+        },
+
+        // observerFunction (val) {
+        // do stuff
+        // },
+
+        // computedFunction (val) {
+        // do stuff
+        // }
+    });
+    </script>
+</dom-module>

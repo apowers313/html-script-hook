@@ -1,0 +1,357 @@
+<script>
+/**
+ * An example Polymer element.
+ *
+ * This element shows off all the features of Polymer. The general format of a Polymer element is:
+ * ``` javascript
+ <link rel="import" href="bower_components/polymer/polymer.html">
+
+ <dom-module id="element-name">
+    <style>
+    </style>
+    <template>     
+    </template>
+    <script>
+        Polymer({
+            is: 'element-name'
+        });
+    < /script>
+</dom-module>
+ * ```
+ * The `<style>` tag contains _internal_ element styling. For more details, see: [Polymer Styling](https://www.polymer-project.org/1.0/docs/devguide/styling.html)
+ * We don't show off much styling here.
+ *
+ * The `<template>` tag contains any HTML and data binding for your element and the `<script>` tag contains the JavaScript definition of your element.
+ *
+ * For more on defining your custom element, check out [Polymer Registration and Lifecycle](https://www.polymer-project.org/1.0/docs/devguide/registering-elements.html).
+ *
+ * Note that [Sublime Text](http://www.sublimetext.com/) has a number of handy 
+ * [Snippets for Polymer](https://packagecontrol.io/packages/Polymer%20%26%20Web%20Component%20Snippets) 
+ * that enable you to quickly create your own Polymer Element by just typing `pe` followed by the tab key. 
+ * And I just noticed that the Snippets were created Rob Dodson, host of [Polycasts](https://www.youtube.com/playlist?list=PLOU2XLYxmsII5c3Mgw6fNYCzaWrsM3sMN).
+ * Thanks Rob!
+ * 
+ * Another way to get started is to use the [open-element-template](https://github.com/apowers313/open-element-template) which has all the base code in place
+ * not just for a Polymer element, but for integrating [Web Component Tester](https://github.com/Polymer/web-component-tester), [Travis CI](https://travis-ci.org/), 
+ * [SauceLabs](https://saucelabs.com/), [YUIDoc](http://yui.github.io/yuidoc/), [customelements.io](https://customelements.io/), 
+ * [David DM](https://david-dm.org/), [Gitter](https://gitter.im/apowers313/open-element-template), and other open source services and features.
+ *
+ * @class example-element
+ */
+/**
+ * @module Example Polymer Element
+ */
+</script>
+<link rel="import" href="../polymer/polymer.html">
+<dom-module id="example-element">
+    <style>
+
+    </style>
+    <template>
+        Hello world!
+        <br> Data binding example: <span>{{testString}}</span>
+        <br>
+        <!-- data binding -->
+        <!-- Dom if -->
+        <!-- Dom repeat -->
+        <!-- filtering / sorting / observe -->
+        <!-- array selector -->
+        <!-- iron-ajax -->
+        <!-- content / distributed content -->
+    </template>
+    <script>
+    Polymer({
+        is: 'example-element',
+        /**
+         * For more on properties, see [Polymer Declared Properties](https://www.polymer-project.org/1.0/docs/devguide/properties.html)
+         *
+         * @property properties
+         */
+        properties: {
+            /**
+             * Just a test String with an initial value
+             * 
+             * @property testString
+             * @type String
+             * @default "this is the initial value"
+             */
+            testString: {
+                type: String,
+                value: "this is the initial value",
+                observer: "testStringObserver"
+            },
+            /**
+             * Just a simple little number
+             *
+             * @property testNumber
+             */
+            testNumber: {
+                type: Number,
+                value: 42,
+                notify: true
+            },
+            /**
+             * An array of strings that are people's names
+             *
+             * @property namesArray
+             */
+            namesArray: {
+                type: Array,
+                // set default value with function to prevent shared copies
+                value: function() {
+                    return ["Alice", "Bob", "Carol", "Eve"];
+                }
+            },
+            /**
+             * Similar to namesArray, but not initialized using a function
+             * Value will be shared across instances... was that a mistake or intentional?
+             *
+             * @property sharedNamesArray
+             */
+            sharedNamesArray: {
+                type: Array,
+                value: ["The", "Quick", "Brown", "Fox"]
+            },
+            /**
+             * An object that represents some simple features of a car
+             *
+             * @property vehicleObject
+             */
+            vehicleObject: {
+                type: Object,
+                value: function() {
+                    return {
+                        type: "car",
+                        wheels: "4",
+                        horsepower: 124,
+                        brand: "Saturn",
+                        model: "SC1",
+                        doors: 3,
+                        msrp: 13515
+                    };
+                }
+            },
+            /**
+             * A boolean value indicating whether this element is active or not.
+             * Active doesn't really mean anything. It's just an example.
+             *
+             * @property active
+             */
+            active: {
+                type: Boolean,
+                value: true
+            },
+            /**
+             * Whether or not this element is happy. Uses an alternate declaration style for very simple properties that don't have default 
+             * values or any other fancy configuration options: `property: type`
+             *
+             * @property happyElement
+             */
+            happyElement: Boolean,
+            /**
+             * Counter is readOnly, just so it doesn't accidentally get changed. But it can be incremented through the counterIncrement method
+             *
+             * @property counter
+             */
+            counter: {
+                type: Number,
+                value: 0,
+                readOnly: true
+            },
+            testNumberWithTax: {
+                type: Number,
+                computed: "calculateTax(testNumber)"
+            }
+            // refelectToAttribute
+            // computed
+        },
+        /**
+         * An observer for the `testString` property that gets called every time it changes. It in turn fires an event with the new property value
+         *
+         * @method testStringObserver
+         */
+        testStringObserver: function(oldVal, newVal) {
+            console.log ("testStringObserver");
+        },
+        /**
+         * Increments the readOnly property `counter`
+         * 
+         * @method counterIncrement
+         */
+        counterIncrement: function() {
+            this._setCounter(this.counter + 1);
+        },
+        /**
+         * Computes the value of 8.5% sales tax for the number passed into it. Is used to compute the value of `testNumberWithTax` every time `testNumber` changes
+         * 
+         * @method calculateTax
+         */
+        calculateTax: function(x) {
+            return (x * 1.085);
+        },
+        /**
+         * This is a built-in Polymer lifecycle callback for when the element is created -- the first thing to happen to an element before the local DOM has been created.
+         *
+         * For more information on lifecycle callbacks see [Polymer Lifecycle Callbacks](https://www.polymer-project.org/1.0/docs/devguide/registering-elements.html#lifecycle-callbacks)
+         *
+         * @method created
+         */
+        /**
+         * @event example-element-created
+         */
+        created: function() {
+            console.log("example-element created");
+            // we aren't attached yet, so we have to use node:document as the source of the event
+            this.fire("example-element-created", {
+                status: "created"
+            }, {
+                node: document
+            });
+
+        },
+        /**
+         * This is a built-in Polymer lifecycle callback for when the element is ready. This is called after the local DOM has been created (see created above), 
+         * but before the `factoryImpl` constructor is called.
+         *
+         * For more information on lifecycle callbacks see [Polymer Lifecycle Callbacks](https://www.polymer-project.org/1.0/docs/devguide/registering-elements.html#lifecycle-callbacks)
+         *
+         * @method ready
+         */
+        /**
+         * @event example-element-ready
+         */
+        ready: function() {
+            console.log("example-element ready");
+            // we aren't attached yet, so we have to use node:document as the source of the event
+            this.fire("example-element-ready", {
+                status: "ready"
+            }, {
+                node: document
+            });
+        },
+        /**
+         * This is a built-in Polymer lifecycle callback for when the element is ready. This is called after `factoryImpl` constructor is 
+         * called and is the last lifecycle callback.
+         *
+         * For more information on lifecycle callbacks see [Polymer Lifecycle Callbacks](https://www.polymer-project.org/1.0/docs/devguide/registering-elements.html#lifecycle-callbacks)
+         *
+         * @method attached
+         */
+        /**
+         * @event example-element-attached
+         */
+        attached: function() {
+            console.log("example-element attached");
+            // we are attached now, so we can use this.fire()
+            this.fire("example-element-attached", {
+                status: "attached"
+            }, {
+                bubbles: true
+            });
+        },
+        /**
+         * This is a built-in Polymer lifecycle callback for when the element is detached.
+         *
+         * For more information on lifecycle callbacks see [Polymer Lifecycle Callbacks](https://www.polymer-project.org/1.0/docs/devguide/registering-elements.html#lifecycle-callbacks)
+         *
+         * @method detached
+         */
+        /**
+         * @event example-element-detached
+         */
+        detached: function() {
+            console.log("example-element detached");
+            // we aren't attached anymore, so we have to use node:document as the source of the event
+            this.fire("example-element-detached", {
+                status: "detached"
+            }, {
+                node: document
+            });
+        },
+        /**
+         * @method attributeChanged
+         */
+        attributeChanged: function() {
+            console.log("example-element attribute changed");
+            this.fire("example-element-attribute-changed", {
+                status: "attribute-changed"
+            });
+        },
+        /**
+         * Because where there's smoke there's fire... This fires off a few events with different options associated with them.
+         *
+         * @method smoke
+         * @param arg {Object} The argument to pass to the custom element
+         */
+        /**
+         * @event smoke-cancelable
+         */
+        /**
+         * @event smoke-not-cancelable
+         */
+        /**
+         * @event smoke-node
+         */
+        /**
+         * @event smoke-bubble
+         */
+        /**
+         * @event smoke-no-bubble
+         */
+        smoke: function(arg) {
+            this.fire("smoke-bubble", arg, {
+                bubbles: true
+            });
+
+            this.fire("smoke-no-bubble", arg, {
+                bubbles: false
+            });
+
+            // this.fire("smoke-cancelable", arg, {
+            //     cancelable: true,
+            //     bubbles: true
+            // });
+
+            // this.fire("smoke-not-cancelable", arg, {
+            //     cancelable: false,
+            //     bubbles: true
+            // });
+
+            this.fire("smoke-node", arg, {
+                node: document
+            });
+        }
+
+        // observerFunction (val) {
+        // do stuff
+        // },
+
+        // computedFunction (val) {
+        // return ...
+        // }
+
+        // observers: [
+        //     "f(multiple,values)",
+        //     "f(some.path)",
+        //     "f(wildcard.path.*)",
+        //     "f(array)"
+        // ],
+
+        // listeners
+
+        // behaviors / extended behaviors
+
+        // Array methods
+
+        // notify: catch changed event
+
+        // this.$
+
+        // async()
+
+        // $$(selector)
+
+        // Events
+    });
+    </script>
+</dom-module>
