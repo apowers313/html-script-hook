@@ -1,4 +1,6 @@
-Calls back a function with each <script> tag found in a HTML file. To leave the code exactly the same, simply callback with the same argument that was passed in.
+
+
+Calls back a function with each `<script>` tag found in a HTML file. To leave the code exactly the same, simply callback with the same argument that was passed in.
 
 Originally for Code Coverage with Istanbul.
 
