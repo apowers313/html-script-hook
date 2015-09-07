@@ -65,7 +65,7 @@ scriptCode =
 		}
 
 endScriptTag =
-	tag:("</script" whitespace* ">")
+	tag:("</script"i whitespace* ">")
 		{
 			return tag.join("");
 		}
