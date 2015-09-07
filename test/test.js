@@ -1,3 +1,17 @@
+assert = require("chai").assert;
+fs = require("fs");
+testParser = require ("../index");
+var simpleScript = __dirname + "/test.html";
+
+suite ("Simple HTML Tests", function() {
+	test ("No changes should return exact same HTML", function() {
+		var testhtml = fs.readFileSync(simpleScript, {encoding: "utf8"});
+		var rethtml = testParser (testhtml, {scriptCallback: gotScript, padLineNo: false});
+		function gotScript (code) { return code; }
+		assert.strictEqual (testhtml, rethtml, "HTML in and out should match");
+	});
+});
+
 /*
 html -
 plain HTML (no script): should be exact match
