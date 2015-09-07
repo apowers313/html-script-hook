@@ -22,7 +22,7 @@ var extremeHtml = fs.readFileSync(__dirname + "/testHtml/extremeHtml.html", {
     encoding: "utf8"
 });
 
-suite("Parser conditions", function () {
+suite("Parser conditions :: ", function () {
     test("Empty HTML should not throw", function () {
         function gotScript(code) {
             return code;
@@ -30,6 +30,17 @@ suite("Parser conditions", function () {
 
         assert.doesNotThrow(testParser, Error, "Empty HTML should not throw error");
         testParser("", {
+            scriptCallback: gotScript
+        });
+    });
+
+    test("Just angle bracket (<)", function () {
+        function gotScript(code) {
+            return code;
+        }
+
+        assert.doesNotThrow(testParser, Error, "Empty HTML should not throw error");
+        testParser("<", {
             scriptCallback: gotScript
         });
     });
@@ -100,7 +111,7 @@ suite("Parser conditions", function () {
     });
 });
 
-suite("Script variants", function () {
+suite("Script variants :: ", function () {
     test("Empty script tags", function () {
         var testhtml = "<html>\n" +
             "<title>Test</title>\n" +
@@ -337,15 +348,263 @@ suite("Script variants", function () {
         assert.strictEqual(ret, testhtml, "Should get original HTML");
     });
 
-    test("Right line number for script tags");
-    test("Right padding for script callback");
-    test("Single line HTML");
-    test("Single line HTML with multiple script tags");
-    test("End on <script> without whitespace");
-    test("End on <script> with whitespace");
-    test("Start with script tag");
-    test("Non JavaScript script");
-    test("Two script tags");
+    test("Right line number for script tags", function () {
+        var testhtml = "<html>\n" +
+            "<title>Test</title>\n" +
+            "<script src=\"test.js\"></script>\n" +
+            "<body>\n" +
+            "This is a test\n" +
+            "</body>\n" +
+            "<script>\n" +
+            "console.log (\"this is a test.\\n\");\n" +
+            "</script>\n" +
+            "</html>";
+
+        function gotScript(code, loc) {
+            assert.isObject(loc, "Should get location object in callback");
+            assert.deepProperty(loc, "start.line", "Location should have property 'start.line'");
+            assert.strictEqual(loc.start.line, 7, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Right padding for script callback", function () {
+        var testhtml = "<html>\n" +
+            "<title>Test</title>\n" +
+            "<script src=\"test.js\"></script>\n" +
+            "<body>\n" +
+            "This is a test\n" +
+            "</body>\n" +
+            "<script>\n" +
+            "console.log (\"this is a test.\\n\");\n" +
+            "</script>\n" +
+            "</html>";
+
+        function gotScript(code) {
+            var paddingCount = code.split("<")[0].match(/\n/g).length;
+            // is one more than the <script> location above because of the script tag
+            assert.strictEqual(paddingCount, 8, "Should have 8 newlines before code");
+            // a little hacky...
+            return "\n" + code.trimLeft();
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Right padding for script callback when code is on the same line", function () {
+        var testhtml = "<html>\n" +
+            "<title>Test</title>\n" +
+            "<script src=\"test.js\"></script>\n" +
+            "<body>\n" +
+            "This is a test\n" +
+            "</body>\n" +
+            "<script>console.log (\"this is a test.\\n\");\n" +
+            "</script>\n" +
+            "</html>";
+
+        function gotScript(code) {
+            var paddingCount = code.split("<")[0].match(/\n/g).length;
+            // is one more than the <script> location above because of the script tag
+            assert.strictEqual(paddingCount, 7, "Should have 7 newlines before code");
+            return code.trimLeft();
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script on one line with no trailing whitespace", function () {
+        var testhtml = "<script>console.log (\"this is a test.\\n\");</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "console.log (\"this is a test.\\n\");", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script on same line as opening tag", function () {
+        var testhtml = "<script>console.log (\"this is a test.\\n\");\n" +
+            "</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "console.log (\"this is a test.\\n\");\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script on same line as closing tag", function () {
+        var testhtml = "<script>\n" +
+            "console.log (\"this is a test.\\n\");</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Single line HTML", function () {
+        var testhtml = "<html><title>This is a test</title><body><script>console.log (\"this is a test.\\n\");</script></body>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "console.log (\"this is a test.\\n\");", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Single line HTML with multiple script tags", function () {
+        var testhtml = "<html><script>console.log (\"this is a test.\\n\");</script><title>This is a test</title><body><script>console.log (\"this is a test.\\n\");</script></body>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "console.log (\"this is a test.\\n\");", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledTwice, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("End on <script> without whitespace", function () {
+        var testhtml = "<script>\n" +
+            "console.log (\"this is a test.\\n\");\n" +
+            "</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("End on <script> with whitespace", function () {
+        var testhtml = "<script>\n" +
+            "console.log (\"this is a test.\\n\");\n" +
+            "</script>  ";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("End on <script> with newline", function () {
+        var testhtml = "<script>\n" +
+            "console.log (\"this is a test.\\n\");\n" +
+            "</script>\n\n";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Start with script tag", function () {
+        var testhtml = "<script>\n" +
+            "console.log (\"this is a test.\\n\");\n" +
+            "</script>\n" +
+            "</html>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
 
     test("Two script tags", function () {
         var testhtml = "<html>\n" +
@@ -435,7 +694,7 @@ suite("Script variants", function () {
             padLineNo: false
         });
 
-        assert.strictEqual (callback.callCount, 5, "Should call scriptCallback");
+        assert.strictEqual(callback.callCount, 5, "Should call scriptCallback");
         assert.strictEqual(ret, testhtml, "Should get original HTML");
     });
 
@@ -466,12 +725,157 @@ suite("Script variants", function () {
         assert.strictEqual(ret, testhtml, "Should get original HTML");
     });
 
-    test("Script tag in string");
-    test("Script tag in comment");
+    test("Script tag in double quote string", function () {
+        var testhtml = "<script>\"</script>\"</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "\"</script>\"", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script tag in single quote string", function () {
+        var testhtml = "<script>'</script>'</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "'</script>'", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script tag in double quote string with escaped double quote", function () {
+        var testhtml = "<script>\"</script>\\\"This is a test\\\"\"</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "\"</script>\\\"This is a test\\\"\"", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script tag in double quote string with escaped double quote", function () {
+        var testhtml = "<script>'</script>Adam\\'s Test'</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "'</script>Adam\\'s Test'", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script tag in block comment", function () {
+        var testhtml = "<script>/*</script>*/</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "/*</script>*/", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Empty block comment", function () {
+        var testhtml = "<script>/**/</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "/**/", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Script tag in line comment", function () {
+        var testhtml = "<script>//</script>\n</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "//</script>\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
+    test("Empty line comment", function () {
+        var testhtml = "<script>//\n</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "//\n", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
     test("Missing closing script tag");
+    test("Script tag in HTML comment");
+    test("Script tag in CDATA block");
+    test("Angle bracket (<) in code");
 });
 
-suite("API tests", function () {
+suite("API tests :: ", function () {
     test("Missing html and options", function () {
         assert.doesNotThrow(testParser, Error, "Empty argument should not throw error");
         var ret = testParser();
@@ -680,7 +1084,7 @@ suite("API tests", function () {
     });
 });
 
-suite("HTML should not be modified", function () {
+suite("HTML should not be modified :: ", function () {
     function gotScript(code) {
         return code;
     }
@@ -710,7 +1114,7 @@ suite("HTML should not be modified", function () {
         assert.strictEqual(rethtml, simplePolymer, "HTML in and out should match");
     });
 
-    test.skip("Complex Polymer should not be modified", function () {
+    test.skip ("Complex Polymer should not be modified", function () {
         var rethtml = testParser(complexPolymer, {
             scriptCallback: callback,
             padLineNo: false
@@ -737,7 +1141,7 @@ suite("HTML should not be modified", function () {
     test("Windows HTML with \\r\\n newlines");
 });
 
-suite("HTML should be modified", function () {
+suite("HTML should be modified :: ", function () {
     function gotScript(code) {
         return "console.log ('THIS IS A TEST');";
     }
