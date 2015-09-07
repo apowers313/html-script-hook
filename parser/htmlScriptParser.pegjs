@@ -1,5 +1,5 @@
 {
-	var codeBlock = new String();
+	var codeBlock = "";
 	function xlat (loc)
 	{
 		if (codeBlock.trim() == "") {
