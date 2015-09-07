@@ -7,14 +7,20 @@
 			return codeBlock;
 		}
 
-		var prepend = "";
-		for (var i = 0; i < loc.start.line; i++) {
-			prepend = prepend + "\n";
+		if (options.padLineNo != false) {
+			var prepend = "";
+			for (var i = 0; i < (loc.start.line - 1); i++) {
+				prepend = prepend + "\n";
+			}
+			codeBlock = prepend + codeBlock;
 		}
-		codeBlock = prepend + codeBlock;
 		//console.log ("Doing callback with:\n========\n" + codeBlock + "\n========\n");
 
-		return options.scriptCallback (codeBlock, loc);
+		if (options.scriptCallback !== undefined) {
+			return options.scriptCallback (codeBlock, loc);
+		} else {
+			return codeBlock;
+		}
 	}
 }
 
