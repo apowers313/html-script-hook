@@ -59,9 +59,69 @@ localScriptTag =
 		}
 
 scriptCode =
-	match:[^<]+
+	str:string
+		{
+			codeBlock = codeBlock + str;
+		}
+	/*/ block
+	/ expression*/
+	/ comment:comment
+		{
+			codeBlock = codeBlock + comment;
+		}
+	/ match:[^<]+
 		{
 			codeBlock = codeBlock + match.join("");
+		}
+
+string =
+	singleQuoteString
+	/ doubleQuoteString
+
+singleQuoteString =
+	"'" str:notSingleEndQuote* "'"
+		{
+			return "'" + str.join("") + "'";
+		}
+
+doubleQuoteString =
+	"\"" str:notDoubleEndQuote* "\""
+		{
+			return "\"" + str.join("") + "\"";
+		}
+
+notSingleEndQuote =
+	"\\'"
+	/ [^']
+
+notDoubleEndQuote =
+	'\\"'
+	/ [^"]
+
+//TODO
+/*block =
+	"{" [^]] "}"*/
+/* expression = */
+comment =
+	blockComment
+	/ lineComment
+
+blockComment =
+	"/*" comment:notEndBlock* "*/"
+		{
+			return "/*" + comment.join("") + "*/"
+		}
+
+notEndBlock =
+	!("*/") ch:.
+		{
+			return ch;
+		}
+
+lineComment =
+	"//" str:[^\n]* "\n"
+		{
+			return "//" + str.join("") + "\n";
 		}
 
 endScriptTag =
