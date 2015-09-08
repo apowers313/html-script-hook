@@ -96,19 +96,32 @@ suite("Parser conditions :: ", function () {
             "<script>\n" +
             "console.log (\"this is a test.\\n\");\n";
         // missing </script>
-        function gotScript(code) {
+        function gotScript(code, details) {
+        	assert.isTrue (details.unexpectedEof, "Should have unexpected EOF flag set");
             return code;
         }
         var callback = sinon.spy(gotScript);
 
-        assert.doesNotThrow(testParser, Error, "Empty HTML should not throw error");
+        // var regex = /but\ end\ of\ input\ found\.$/
+        // var regex = /./g;
+        // assert.throws(testParser, 'SyntaxError: Expected "\'", "/*", "//", "</script", "\\"" or [^<] but end of input found.');
+        // assert.throws(testParser, regex, "Missing end script should not throw error");
 
+        // try {
         testParser(testhtml, {
             scriptCallback: callback
         });
+        // } catch (e) {
+        // 	console.log ("Caught:", e);
+        // }
 
-        assert.isFalse(callback.called, "Should not call scriptCallback with broken <script>");
+        assert.isTrue(callback.calledOnce, "Should not call scriptCallback with broken <script>");
     });
+
+    test("Missing closing block comment");
+    test("EOF on single line comment");
+    test("Missing closing double quote");
+    test("Missing closing single quote");
 });
 
 suite("Script variants :: ", function () {
@@ -360,10 +373,10 @@ suite("Script variants :: ", function () {
             "</script>\n" +
             "</html>";
 
-        function gotScript(code, loc) {
-            assert.isObject(loc, "Should get location object in callback");
-            assert.deepProperty(loc, "start.line", "Location should have property 'start.line'");
-            assert.strictEqual(loc.start.line, 7, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
+        function gotScript(code, details) {
+            assert.isObject(details, "Should get location object in callback");
+            assert.deepProperty(details, "location.start.line", "Location should have property 'start.line'");
+            assert.strictEqual(details.location.start.line, 7, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
             return code;
         }
         var callback = sinon.spy(gotScript);
@@ -869,10 +882,26 @@ suite("Script variants :: ", function () {
         assert.strictEqual(ret, testhtml, "Should get original HTML");
     });
 
-    test("Missing closing script tag");
+    test("Angle bracket (<) in code", function () {
+        var testhtml = "<script>a = !b < c * d / e > f</script>";
+
+        function gotScript(code) {
+            assert.strictEqual(code, "a = !b < c * d / e > f", "Should get correct code");
+            return code;
+        }
+        var callback = sinon.spy(gotScript);
+
+        var ret = testParser(testhtml, {
+            scriptCallback: callback,
+            padLineNo: false
+        });
+
+        assert.isTrue(callback.calledOnce, "Should call scriptCallback");
+        assert.strictEqual(ret, testhtml, "Should get original HTML");
+    });
+
     test("Script tag in HTML comment");
     test("Script tag in CDATA block");
-    test("Angle bracket (<) in code");
 });
 
 suite("API tests :: ", function () {
@@ -928,7 +957,8 @@ suite("API tests :: ", function () {
             "</script>\n" +
             "</html>";
 
-        function gotScript(code) {
+        function gotScript(code, details) {
+         	assert.isFalse (details.unexpectedEof, "Should not have unexpected EOF flag set");
             assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
             return code;
         }
@@ -986,10 +1016,10 @@ suite("API tests :: ", function () {
             "</script>\n" +
             "</html>";
 
-        function gotScript(code, loc) {
+        function gotScript(code, details) {
             assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
-            assert.isObject(loc, "Script callback should receive object for location");
-            assert.deepEqual(loc, {
+            assert.isObject(details, "Script callback should receive object for location");
+            assert.deepEqual(details.location, {
                 start: {
                     offset: 57,
                     line: 6,
@@ -1114,7 +1144,7 @@ suite("HTML should not be modified :: ", function () {
         assert.strictEqual(rethtml, simplePolymer, "HTML in and out should match");
     });
 
-    test.skip ("Complex Polymer should not be modified", function () {
+    test("Complex Polymer should not be modified", function () {
         var rethtml = testParser(complexPolymer, {
             scriptCallback: callback,
             padLineNo: false
@@ -1122,7 +1152,7 @@ suite("HTML should not be modified :: ", function () {
         assert.strictEqual(rethtml, complexPolymer, "HTML in and out should match");
     });
 
-    test.skip("Real Website should not be modified", function () {
+    test("Real Website should not be modified", function () {
         var rethtml = testParser(realWebsite, {
             scriptCallback: callback,
             padLineNo: false
