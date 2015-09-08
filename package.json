@@ -1,6 +1,6 @@
 {
   "name": "html-script-hook",
-  "version": "0.7.0",
+  "version": "0.9.0",
   "description": "For each local <script> tag, calls a callback and replaces the script code with the result",
   "main": "index.js",
   "directories": {
