@@ -97,7 +97,7 @@ suite("Parser conditions :: ", function () {
             "console.log (\"this is a test.\\n\");\n";
         // missing </script>
         function gotScript(code, details) {
-        	assert.isTrue (details.unexpectedEof, "Should have unexpected EOF flag set");
+            assert.isTrue(details.unexpectedEof, "Should have unexpected EOF flag set");
             return code;
         }
         var callback = sinon.spy(gotScript);
@@ -958,7 +958,7 @@ suite("API tests :: ", function () {
             "</html>";
 
         function gotScript(code, details) {
-         	assert.isFalse (details.unexpectedEof, "Should not have unexpected EOF flag set");
+            assert.isFalse(details.unexpectedEof, "Should not have unexpected EOF flag set");
             assert.strictEqual(code, "\nconsole.log (\"this is a test.\\n\");\n", "Should get correct code");
             return code;
         }
@@ -1173,13 +1173,60 @@ suite("HTML should not be modified :: ", function () {
 
 suite("HTML should be modified :: ", function () {
     function gotScript(code) {
-        return "console.log ('THIS IS A TEST');";
+        return "TESTING";
     }
 
-    test("Simple HTML -- should replace script");
-    test("Simple Script -- should replace script");
-    test("Simple Polymer - should replace script");
-    test("Complex Polymer - should replace script");
-    test("Real Website - should replace script");
+    test("Simple HTML has no script tags and should not change", function () {
+        var rethtml = testParser(simpleHtml, {
+            scriptCallback: gotScript,
+            padLineNo: false
+        });
+        assert.strictEqual(rethtml, simpleHtml, "HTML in and out should match");
+    });
+
+    test("Simple Script -- should replace script", function () {
+        var simpleScriptResult = fs.readFileSync(__dirname + "/testHtml/simpleScript-result.html", {
+            encoding: "utf8"
+        });
+        var rethtml = testParser(simpleScript, {
+            scriptCallback: gotScript,
+            padLineNo: false
+        });
+        assert.strictEqual(rethtml, simpleScriptResult, "HTML in and out should match");
+    });
+
+    test("Simple Polymer - should replace script", function () {
+        var simplePolymerResult = fs.readFileSync(__dirname + "/testHtml/simplePolymer-result.html", {
+            encoding: "utf8"
+        });
+        var rethtml = testParser(simplePolymer, {
+            scriptCallback: gotScript,
+            padLineNo: false
+        });
+        assert.strictEqual(rethtml, simplePolymerResult, "HTML in and out should match");
+    });
+
+    test("Complex Polymer - should replace script", function () {
+        var complexPolymerResult = fs.readFileSync(__dirname + "/testHtml/complexPolymer-result.html", {
+            encoding: "utf8"
+        });
+        var rethtml = testParser(complexPolymer, {
+            scriptCallback: gotScript,
+            padLineNo: false
+        });
+        assert.strictEqual(rethtml, complexPolymerResult, "HTML in and out should match");
+    });
+
+    test("Real Website - should replace script", function () {
+        var realWebsiteResult = fs.readFileSync(__dirname + "/testHtml/realWebsite-result.html", {
+            encoding: "utf8"
+        });
+        var rethtml = testParser(realWebsite, {
+            scriptCallback: gotScript,
+            padLineNo: false
+        });
+        assert.strictEqual(rethtml, realWebsiteResult, "HTML in and out should match");
+    });
+
     test("Extreme Script Placement - should replace script");
 });
