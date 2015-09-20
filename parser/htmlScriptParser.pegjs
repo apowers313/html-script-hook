@@ -1,6 +1,6 @@
 {
 	var codeBlock = "";
-	var startLocation, endLocation;
+	var codeLocation, startLocation, endLocation;
 	var unexpectedEof = false;
 
 	function xlat (loc)
@@ -20,7 +20,7 @@
 		//console.log ("Doing callback with:\n========\n" + codeBlock + "\n========\n");
 
 		var details = {
-			location: loc,
+			location: codeLocation,
 			startLocation: startLocation,
 			endLocation: endLocation,
 			unexpectedEof: unexpectedEof
@@ -45,15 +45,11 @@ html =
 	/ chars:ch+ { return chars.join("");}
 
 scriptBlock =
-	openTag:localScriptTag code:scriptCode* closeTag:endScriptTag
+	openTag:localScriptTag code:scriptCode closeTag:endScriptTag
 		{	
-			// console.log ("Doing script block");
-			// xlat(location(), function (newCode) {
-				// console.log ("Calling xlat with:", location());
-				var ret = openTag + xlat(location()) + closeTag;
-				codeBlock = "";
-				return ret;
-			// });
+			var ret = openTag + xlat(location()) + closeTag;
+			codeBlock = "";
+			return ret;
 		}
 
 localScriptTag =
@@ -66,12 +62,16 @@ localScriptTag =
 		}
 
 scriptCode =
+	scriptParts*
+		{
+			codeLocation = location();
+		}
+
+scriptParts = 
 	str:string
 		{
 			codeBlock = codeBlock + str;
 		}
-	/*/ block
-	/ expression*/
 	/ comment:comment
 		{
 			codeBlock = codeBlock + comment;
@@ -126,10 +126,6 @@ notDoubleEndQuote =
 	'\\"'
 	/ [^"]
 
-//TODO
-/*block =
-	"{" [^]] "}"*/
-/* expression = */
 comment =
 	blockComment
 	/ lineComment

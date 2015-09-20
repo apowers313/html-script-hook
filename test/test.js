@@ -1021,14 +1021,14 @@ suite("API tests :: ", function () {
             assert.isObject(details, "Script callback should receive object for location");
             assert.deepEqual(details.location, {
                 start: {
-                    offset: 57,
+                    offset: 65,
                     line: 6,
-                    column: 1
+                    column: 9
                 },
                 end: {
-                    offset: 110,
+                    offset: 101,
                     line: 8,
-                    column: 10
+                    column: 1
                 }
             }, "Should get right location");
             return code;
@@ -1111,6 +1111,239 @@ suite("API tests :: ", function () {
             padLineNo: false
         });
         assert.isTrue(callback.calledOnce, "Should have received callback");
+    });
+});
+
+suite ("Locations of Script Tags and Code :: ", function () {
+    test("Script on first line", function () {
+        var testhtml =
+            "<script>\n" +
+            "console.log('testing');\n" +
+            "</script>\n";
+
+        function gotScript(code, loc) {
+            assert.isObject (loc, "Should receive location object");
+
+            assert.strictEqual (loc.startLocation.start.line, 1, "First script tag starts on line 1");
+            assert.strictEqual (loc.startLocation.start.column, 1, "First script tag starts on column 1");
+            assert.strictEqual (loc.startLocation.start.offset, 0, "First script tag starts at byte offset 0");
+            assert.strictEqual (loc.startLocation.end.line, 1, "First script tag ends on line 1");
+            assert.strictEqual (loc.startLocation.end.column, 9, "First script tag ends on column 9");
+            assert.strictEqual (loc.startLocation.end.offset, 8, "First script tag ends at byte offset 8");
+
+            assert.strictEqual (loc.location.start.line, 1, "Code location starts with the newline following the script tag");
+            assert.strictEqual (loc.location.start.column, 9, "Code location starts on column 10");
+            assert.strictEqual (loc.location.start.offset, 8, "Code location starts at byte offset 9");
+            assert.strictEqual (loc.location.end.line, 3, "Code ends on line 3");
+            assert.strictEqual (loc.location.end.column, 1, "Code ends on column 0");
+            assert.strictEqual (loc.location.end.offset, 33, "Code ends at byte offset 33");
+
+            assert.strictEqual (loc.endLocation.start.line, 3, "Closing script tag starts on line 3");
+            assert.strictEqual (loc.endLocation.start.column, 1, "Closing script tag starts on column 1");
+            assert.strictEqual (loc.endLocation.start.offset, 33, "Closing script tag starts at byte offset 33");
+            assert.strictEqual (loc.endLocation.end.line, 3, "Closing script tag ends on line 3");
+            assert.strictEqual (loc.endLocation.end.column, 10, "Closing script tag ends on column 10");
+            assert.strictEqual (loc.endLocation.end.offset, 42, "Closing script tag ends at byte offset 43");
+        }
+        var callback = sinon.spy(gotScript);
+
+        testParser(testhtml, {
+            scriptCallback: callback
+        });
+        assert.isTrue(callback.calledOnce, "Should receive script callback");
+    });
+        
+    test("Script on second line and indented", function () {
+        var testhtml =
+            "\n" +
+            "    <script>\n" +
+            "    console.log('testing');\n" +
+            "    </script>\n";
+
+        function gotScript(code, loc) {
+            assert.isObject (loc, "Should receive location object");
+
+            assert.strictEqual (loc.startLocation.start.line, 2, "First script tag starts on line 1");
+            assert.strictEqual (loc.startLocation.start.column, 5, "First script tag starts on column 1");
+            assert.strictEqual (loc.startLocation.start.offset, 5, "First script tag starts at byte offset 0");
+            assert.strictEqual (loc.startLocation.end.line, 2, "First script tag ends on line 1");
+            assert.strictEqual (loc.startLocation.end.column, 13, "First script tag ends on column 9");
+            assert.strictEqual (loc.startLocation.end.offset, 13, "First script tag ends at byte offset 8");
+
+            assert.strictEqual (loc.location.start.line, 2, "Code location starts with the newline following the script tag");
+            assert.strictEqual (loc.location.start.column, 13, "Code location starts on column 10");
+            assert.strictEqual (loc.location.start.offset, 13, "Code location starts at byte offset 9");
+            assert.strictEqual (loc.location.end.line, 4, "Code ends on line 3");
+            assert.strictEqual (loc.location.end.column, 5, "Code ends on column 0");
+            assert.strictEqual (loc.location.end.offset, 46, "Code ends at byte offset 33");
+
+            assert.strictEqual (loc.endLocation.start.line, 4, "Closing script tag starts on line 3");
+            assert.strictEqual (loc.endLocation.start.column, 5, "Closing script tag starts on column 1");
+            assert.strictEqual (loc.endLocation.start.offset, 46, "Closing script tag starts at byte offset 33");
+            assert.strictEqual (loc.endLocation.end.line, 4, "Closing script tag ends on line 3");
+            assert.strictEqual (loc.endLocation.end.column, 14, "Closing script tag ends on column 10");
+            assert.strictEqual (loc.endLocation.end.offset, 55, "Closing script tag ends at byte offset 43");
+        }
+        var callback = sinon.spy(gotScript);
+
+        testParser(testhtml, {
+            scriptCallback: callback
+        });
+        assert.isTrue(callback.calledOnce, "Should receive script callback");
+    });
+
+    test("Code on same line as opening script tag", function () {
+        var testhtml =
+            "<script>console.log('testing');\n" +
+            "</script>\n";
+
+        function gotScript(code, loc) {
+            assert.isObject (loc, "Should receive location object");
+
+            assert.strictEqual (loc.startLocation.start.line, 1, "First script tag starts on line 1");
+            assert.strictEqual (loc.startLocation.start.column, 1, "First script tag starts on column 1");
+            assert.strictEqual (loc.startLocation.start.offset, 0, "First script tag starts at byte offset 0");
+            assert.strictEqual (loc.startLocation.end.line, 1, "First script tag ends on line 1");
+            assert.strictEqual (loc.startLocation.end.column, 9, "First script tag ends on column 9");
+            assert.strictEqual (loc.startLocation.end.offset, 8, "First script tag ends at byte offset 8");
+
+            assert.strictEqual (loc.location.start.line, 1, "Code location starts with the newline following the script tag");
+            assert.strictEqual (loc.location.start.column, 9, "Code location starts on column 10");
+            assert.strictEqual (loc.location.start.offset, 8, "Code location starts at byte offset 9");
+            assert.strictEqual (loc.location.end.line, 2, "Code ends on line 3");
+            assert.strictEqual (loc.location.end.column, 1, "Code ends on column 0");
+            assert.strictEqual (loc.location.end.offset, 32, "Code ends at byte offset 33");
+
+            assert.strictEqual (loc.endLocation.start.line, 2, "Closing script tag starts on line 3");
+            assert.strictEqual (loc.endLocation.start.column, 1, "Closing script tag starts on column 1");
+            assert.strictEqual (loc.endLocation.start.offset, 32, "Closing script tag starts at byte offset 33");
+            assert.strictEqual (loc.endLocation.end.line, 2, "Closing script tag ends on line 3");
+            assert.strictEqual (loc.endLocation.end.column, 10, "Closing script tag ends on column 10");
+            assert.strictEqual (loc.endLocation.end.offset, 41, "Closing script tag ends at byte offset 43");
+        }
+        var callback = sinon.spy(gotScript);
+
+        testParser(testhtml, {
+            scriptCallback: callback
+        });
+        assert.isTrue(callback.calledOnce, "Should receive script callback");
+    });
+
+    test("Code on same line as closing script tag", function () {
+        var testhtml =
+            "<script>\n" +
+            "console.log('testing');</script>\n";
+
+        function gotScript(code, loc) {
+            assert.isObject (loc, "Should receive location object");
+
+            assert.strictEqual (loc.startLocation.start.line, 1, "First script tag starts on line 1");
+            assert.strictEqual (loc.startLocation.start.column, 1, "First script tag starts on column 1");
+            assert.strictEqual (loc.startLocation.start.offset, 0, "First script tag starts at byte offset 0");
+            assert.strictEqual (loc.startLocation.end.line, 1, "First script tag ends on line 1");
+            assert.strictEqual (loc.startLocation.end.column, 9, "First script tag ends on column 9");
+            assert.strictEqual (loc.startLocation.end.offset, 8, "First script tag ends at byte offset 8");
+
+            assert.strictEqual (loc.location.start.line, 1, "Code location starts with the newline following the script tag");
+            assert.strictEqual (loc.location.start.column, 9, "Code location starts on column 10");
+            assert.strictEqual (loc.location.start.offset, 8, "Code location starts at byte offset 9");
+            assert.strictEqual (loc.location.end.line, 2, "Code ends on line 3");
+            assert.strictEqual (loc.location.end.column, 24, "Code ends on column 0");
+            assert.strictEqual (loc.location.end.offset, 32, "Code ends at byte offset 33");
+
+            assert.strictEqual (loc.endLocation.start.line, 2, "Closing script tag starts on line 3");
+            assert.strictEqual (loc.endLocation.start.column, 24, "Closing script tag starts on column 1");
+            assert.strictEqual (loc.endLocation.start.offset, 32, "Closing script tag starts at byte offset 33");
+            assert.strictEqual (loc.endLocation.end.line, 2, "Closing script tag ends on line 3");
+            assert.strictEqual (loc.endLocation.end.column, 33, "Closing script tag ends on column 10");
+            assert.strictEqual (loc.endLocation.end.offset, 41, "Closing script tag ends at byte offset 43");
+        }
+        var callback = sinon.spy(gotScript);
+
+        testParser(testhtml, {
+            scriptCallback: callback
+        });
+        assert.isTrue(callback.calledOnce, "Should receive script callback");
+    });
+
+    test("Everything on one line", function () {
+        var testhtml =
+            "<script>console.log('testing');</script>\n";
+
+        function gotScript(code, loc) {
+            assert.isObject (loc, "Should receive location object");
+
+            assert.strictEqual (loc.startLocation.start.line, 1, "First script tag starts on line 1");
+            assert.strictEqual (loc.startLocation.start.column, 1, "First script tag starts on column 1");
+            assert.strictEqual (loc.startLocation.start.offset, 0, "First script tag starts at byte offset 0");
+            assert.strictEqual (loc.startLocation.end.line, 1, "First script tag ends on line 1");
+            assert.strictEqual (loc.startLocation.end.column, 9, "First script tag ends on column 9");
+            assert.strictEqual (loc.startLocation.end.offset, 8, "First script tag ends at byte offset 8");
+
+            assert.strictEqual (loc.location.start.line, 1, "Code location starts with the newline following the script tag");
+            assert.strictEqual (loc.location.start.column, 9, "Code location starts on column 10");
+            assert.strictEqual (loc.location.start.offset, 8, "Code location starts at byte offset 9");
+            assert.strictEqual (loc.location.end.line, 1, "Code ends on line 3");
+            assert.strictEqual (loc.location.end.column, 32, "Code ends on column 0");
+            assert.strictEqual (loc.location.end.offset, 31, "Code ends at byte offset 33");
+
+            assert.strictEqual (loc.endLocation.start.line, 1, "Closing script tag starts on line 3");
+            assert.strictEqual (loc.endLocation.start.column, 32, "Closing script tag starts on column 1");
+            assert.strictEqual (loc.endLocation.start.offset, 31, "Closing script tag starts at byte offset 33");
+            assert.strictEqual (loc.endLocation.end.line, 1, "Closing script tag ends on line 3");
+            assert.strictEqual (loc.endLocation.end.column, 41, "Closing script tag ends on column 10");
+            assert.strictEqual (loc.endLocation.end.offset, 40, "Closing script tag ends at byte offset 43");
+        }
+        var callback = sinon.spy(gotScript);
+
+        testParser(testhtml, {
+            scriptCallback: callback
+        });
+        assert.isTrue(callback.calledOnce, "Should receive script callback");
+    });
+
+    test("Complex script tags", function () {
+        var testhtml =
+            "    <script \n" + 
+            "    type=\"text/javascript\"\n" + 
+            "    >\n" +
+            "         console.log('testing');\n" + 
+            "         console.log('test2');\n" +
+            "         var a = 1 + 2;\n" +
+            "    </script\n" +
+            "    >\n" +
+            "</body>";
+
+        function gotScript(code, loc) {
+            assert.isObject (loc, "Should receive location object");
+
+            assert.strictEqual (loc.startLocation.start.line, 1, "First script tag starts on line 1");
+            assert.strictEqual (loc.startLocation.start.column, 5, "First script tag starts on column 1");
+            assert.strictEqual (loc.startLocation.start.offset, 4, "First script tag starts at byte offset 0");
+            assert.strictEqual (loc.startLocation.end.line, 3, "First script tag ends on line 1");
+            assert.strictEqual (loc.startLocation.end.column, 6, "First script tag ends on column 9");
+            assert.strictEqual (loc.startLocation.end.offset, 45, "First script tag ends at byte offset 8");
+
+            assert.strictEqual (loc.location.start.line, 3, "Code location starts with the newline following the script tag");
+            assert.strictEqual (loc.location.start.column, 6, "Code location starts on column 10");
+            assert.strictEqual (loc.location.start.offset, 45, "Code location starts at byte offset 9");
+            assert.strictEqual (loc.location.end.line, 7, "Code ends on line 3");
+            assert.strictEqual (loc.location.end.column, 5, "Code ends on column 0");
+            assert.strictEqual (loc.location.end.offset, 138, "Code ends at byte offset 33");
+
+            assert.strictEqual (loc.endLocation.start.line, 7, "Closing script tag starts on line 3");
+            assert.strictEqual (loc.endLocation.start.column, 5, "Closing script tag starts on column 1");
+            assert.strictEqual (loc.endLocation.start.offset, 138, "Closing script tag starts at byte offset 33");
+            assert.strictEqual (loc.endLocation.end.line, 8, "Closing script tag ends on line 3");
+            assert.strictEqual (loc.endLocation.end.column, 6, "Closing script tag ends on column 10");
+            assert.strictEqual (loc.endLocation.end.offset, 152, "Closing script tag ends at byte offset 43");
+        }
+        var callback = sinon.spy(gotScript);
+
+        testParser(testhtml, {
+            scriptCallback: callback
+        });
+        assert.isTrue(callback.calledOnce, "Should receive script callback");
     });
 });
 
