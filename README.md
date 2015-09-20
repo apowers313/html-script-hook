@@ -38,12 +38,6 @@ var html = fs.readFileSync("test.html", {
     encoding: "utf8"
 });
 
-// the `ret` variable will contain the new HTML
-var ret = testParser(testhtml, {
-	// tell the parser to call the gotScript() function for each <script> section
-    scriptCallback: gotScript
-});
-
 // callback receives code from <script> section and replaces it with return value
 function gotScript(code) {
 	// prints: "\nconsole.log (\"this is a test.\\n\");\n"
@@ -53,6 +47,12 @@ function gotScript(code) {
 	// replace the current code with a single comment
     return "// no more console log";
 }
+
+// the `ret` variable will contain the new HTML
+var ret = testParser(testhtml, {
+	// tell the parser to call the gotScript() function for each <script> section
+    scriptCallback: gotScript
+});
 ```
 
 End up with a modified `<script>` section:
@@ -75,15 +75,21 @@ As a bit more of a real world example, here's how to instrument a HTML file for 
 
 ``` javascript
 var istanbul = require('istanbul');
-var instrumenter = new istanbul.Instrumenter();
 var scriptHook = require('html-script-hook');
 var fs = require("fs");
 
-html = fs.readFileSync(htmlFilePath, 'utf8');
+// create a new Istanbul instrumenter
+var instrumenter = new istanbul.Instrumenter();
 
+// read in a HTML file
+var html = fs.readFileSync(htmlFilePath, 'utf8');
+// parse the HTML file and replace it with a HTML file where the code has been instrumented
+// (using the gotScript() callback)
 html = scriptHook (html, {scriptCallback: gotScript});
 
+// catch the code in the script section
 function gotScript(code, loc) {
+	// replace the existing code with instrumented code
 	return instrumenter.instrumentSync(code, htmlFilePath);
 }
 ```
